@@ -221,8 +221,31 @@ Its mathematical error guarantee makes it particularly useful when exact frequen
 
 ## References
 
-1. Graham Cormode and S. Muthukrishnan, *An Improved Data Stream Summary: The Count-Min Sketch and its Applications*.
-2. Count-Min Sketch research literature and course materials used for this project.
+[1] Video lectures on the Count-Min Sketch (YouTube), accessed 2026:
+
+- https://www.youtube.com/playlist?list=PL2mpR0RYFQsAR5RyB54FyEE9vUiGtCSZM
+- https://www.youtube.com/playlist?list=PLM_KIlU0WoXmkV4QBa1Dg8PtJaHTdWHwRS
+- https://www.youtube.com/watch?v=ibxXO-b14j4
+
+[2] T. Roughgarden and G. Valiant. *Lecture #2: Approximate Heavy Hitters and the Count-Min Sketch.* CS168: The Modern Algorithmic Toolbox, Stanford University, 2 April 2015.
+
+https://theory.stanford.edu/~tim/s15/l/l2.pdf
+
+[3] A. Moitra. *Problem Set 2.* 6.854J/18.415J Advanced Algorithms, Massachusetts Institute of Technology, 2016.
+
+https://people.csail.mit.edu/moitra/docs/6854hw2.pdf
+
+[4] B. Sigurleifsson, A. Anbarasu and K. Kangur. *An Overview of Count-Min Sketch and its Applications.* EasyChair Preprint No. 879, 2019.
+
+https://easychair.org/publications/preprint/gNlw/open
+
+[5] N. Limaye. *Lecture 7: Count-Min and Count sketches.* CS602 Applied Algorithms lecture notes, IIT Bombay, 2014.
+
+https://www.cse.iitb.ac.in/~nutan/courses/cs602-13/notes/lec7.pdf
+
+[6] *Scribe notes 11.* COMP 480/580, Rice University, Fall 2024.
+
+https://www.cs.rice.edu/~as143/COMP480_580_Fall24/scribe/scribe11.pdf
 
 ---
 
