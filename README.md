@@ -1,264 +1,229 @@
 # Count-Min Sketch: Frequency Estimation in Large Data Streams
 
-**A Probability-Based Study of Probabilistic Data Structures**
+A probabilistic data structure for estimating item frequencies in massive data streams using hashing, compact counters, and mathematical error guarantees.
 
-**Institution:** Indian Statistical Institute (ISI)  
-**Course:** Probability 2
+## Project Information
+
+**Course:** Probability 2  
+**Institution:** Indian Statistical Institute
 
 **Authors:** Daksh, Shaurya, Swapnil, Tridham, Akshay, Shinjan G
 
----
+## 1. Introduction
 
-## Overview
+Modern applications generate enormous data streams. Examples include network traffic, online transactions, search queries, and social-media activity.
 
-How can we estimate the frequency of an item in a massive data stream without storing every observation?
+Storing every incoming element and maintaining its exact frequency can require substantial memory. The **Count-Min Sketch (CMS)** is a probabilistic data structure that estimates item frequencies using a small two-dimensional array of counters and multiple hash functions.
 
-This project studies the **Count-Min Sketch (CMS)**, a probabilistic data structure designed for approximate frequency estimation using significantly less memory than conventional exact frequency tables.
+Its main objective is to provide approximate frequency queries while using significantly less memory than storing the complete frequency table.
 
-The project develops the mathematical foundations of Count-Min Sketch, explains its construction and operations, establishes its probabilistic error guarantees, and investigates how different properties of a data stream affect its performance.
+## 2. Count-Min Sketch Data Structure
 
-The central idea is to replace an exact frequency table with a compact matrix of counters, multiple hash functions, and a minimum-based query operation.
+A Count-Min Sketch consists of:
 
-## 1. The Problem
+- A two-dimensional counter array with depth $d$ and width $w$.
+- $d$ hash functions, one for each row.
+- Non-negative integer counters, initially set to zero.
 
-A data stream is an ordered sequence of observations or events:
+The counter array is:
 
-\[
-x_1,x_2,x_3,\ldots
-\]
+$$
+C \in \mathbb{N}^{d \times w}
+$$
 
-Examples include:
+Each hash function maps an incoming item to a counter position:
 
-- Network packets
-- Search queries
-- Financial transactions
-- Website clicks
-- Sensor readings
-- System logs
+$$
+h_i(x) \in \{0,1,\ldots,w-1\}
+$$
 
-For an item \(x\), its frequency is
+where $i=1,2,\ldots,d$.
 
-\[
-f(x)=\#\{i:x_i=x\}.
-\]
+## 3. Update Operation
 
-Maintaining an exact frequency table requires a separate counter for every distinct item. For massive streams, this can become prohibitively expensive.
+When an item $x$ arrives in the stream, its corresponding counter is incremented in every row.
 
-Count-Min Sketch addresses this problem by maintaining a fixed-size summary of the stream.
+For each row $i$:
 
-## 2. Count-Min Sketch
+$$
+C[i][h_i(x)] \leftarrow C[i][h_i(x)] + 1
+$$
 
-A Count-Min Sketch consists of a matrix of counters
+Thus, one stream update requires $d$ counter increments.
 
-\[
-C\in\mathbb{N}^{d\times w},
-\]
+## 4. Query Operation
 
-where:
+To estimate the frequency of an item $x$, retrieve the corresponding counter from every row and return the minimum:
 
-- \(d\) is the number of rows (depth).
-- \(w\) is the number of columns (width).
-- \(h_1,h_2,\ldots,h_d\) are the corresponding hash functions.
-
-### Update Operation
-
-When an item \(x\) arrives, update one counter in every row:
-
-\[
-C[j,h_j(x)]\leftarrow C[j,h_j(x)]+1.
-\]
-
-### Query Operation
-
-To estimate the frequency of an item \(x\), retrieve the corresponding counter from every row and return their minimum:
-
-\[
-\boxed{
-\hat f(x)=\min_{1\leq j\leq d}C[j,h_j(x)]
-}
-\]
-
-Collisions may increase the estimated frequency, but under non-negative updates they cannot cause underestimation.
-
-Therefore,
-
-\[
-\hat f(x)\geq f(x).
-\]
-
-## 3. Mathematical Analysis
-
-The probabilistic analysis relies on the following assumptions:
-
-1. The stream is fixed before the hash functions are randomly selected.
-2. Distinct items have pairwise collision probability \(1/w\) in each row.
-3. Hash functions belonging to different rows are independent.
-4. All updates are non-negative.
-
-For a fixed target item \(x\), define the collision error in row \(j\) as
-
-\[
-X_j=C[j,h_j(x)]-f(x).
-\]
-
-Equivalently,
-
-\[
-X_j=
-\sum_{y\neq x}f(y)
-\mathbf{1}\{h_j(y)=h_j(x)\}.
-\]
-
-Let
-
-\[
-N=\sum_y f(y)
-\]
-
-denote the total number of arrivals.
-
-By linearity of expectation and the pairwise collision property,
-
-\[
-\mathbb E[X_j]
+$$
+\widehat{f}(x)
 =
-\frac{1}{w}\sum_{y\neq x}f(y)
-\leq\frac{N}{w}.
-\]
+\min_{1\leq i\leq d}
+C[i][h_i(x)]
+$$
 
-Using Markov's inequality,
+The minimum is used because hash collisions can cause counters to overestimate frequencies.
 
-\[
-\Pr(X_j>\varepsilon N)
-\leq \frac{1}{\varepsilon w}.
-\]
+For streams containing only non-negative updates:
 
-Choosing
+$$
+\widehat{f}(x)\geq f(x)
+$$
 
-\[
-w=\left\lceil\frac{e}{\varepsilon}\right\rceil,
-\qquad
-d=\left\lceil\ln\frac{1}{\delta}\right\rceil,
-\]
+Therefore, Count-Min Sketch does not underestimate the true frequency.
 
-gives the point-query guarantee:
+## 5. Mathematical Error Guarantee
 
-\[
-\boxed{
+Let:
+
+- $f(x)$ denote the true frequency of item $x$.
+- $\widehat{f}(x)$ denote its estimated frequency.
+- $N$ denote the total number of stream updates.
+- $\epsilon$ denote the additive error parameter.
+- $\delta$ denote the failure probability.
+
+For a fixed item, under the standard Count-Min Sketch assumptions, choose:
+
+$$
+w=\left\lceil\frac{e}{\epsilon}\right\rceil
+$$
+
+and
+
+$$
+d=\left\lceil\ln\left(\frac{1}{\delta}\right)\right\rceil
+$$
+
+Then the estimate satisfies:
+
+$$
 \Pr\left(
-f(x)\leq\hat f(x)\leq f(x)+\varepsilon N
-\right)\geq1-\delta
-}
-\]
+f(x)\leq\widehat{f}(x)
+\leq f(x)+\epsilon N
+\right)
+\geq 1-\delta
+$$
 
-Thus, the number of counters is
+This means that, with probability at least $1-\delta$, the estimated frequency exceeds the true frequency by at most $\epsilon N$.
 
-\[
-\boxed{
-dw=O\left(
-\frac{1}{\varepsilon}\ln\frac{1}{\delta}
-\right).
-}
-\]
+### Space Complexity
 
-The memory requirement depends on the desired accuracy and confidence rather than the number of distinct items.
+The total number of counters is:
 
-## 4. Complete Worked Example
+$$
+S=wd
+$$
 
-The project develops a complete example using the stream
+Substituting the selected width and depth gives:
 
-\[
-A,B,A,C,A,B,A,D,A,C,E,A,B,A,F,D,B,C,A,G.
-\]
+$$
+S=
+O\left(
+\frac{1}{\epsilon}
+\ln\frac{1}{\delta}
+\right)
+$$
 
-The stream contains:
+### Update Complexity
 
-- Total arrivals: \(N=20\)
-- Distinct items: \(7\)
-- Width: \(w=11\)
-- Depth: \(d=3\)
-- Total counters: \(33\)
+Each update accesses one counter in every row:
 
-The true frequencies are:
+$$
+T_{\mathrm{update}}=O(d)
+$$
 
-| Item | A | B | C | D | E | F | G |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| True frequency | 8 | 4 | 3 | 2 | 1 | 1 | 1 |
-| Estimated frequency | 8 | 4 | 3 | 2 | 1 | 1 | 4 |
-| Error | 0 | 0 | 0 | 0 | 0 | 0 | 3 |
+Therefore:
 
-The example illustrates how collisions affect frequency estimates, particularly for rare items.
+$$
+T_{\mathrm{update}}
+=
+O\left(\ln\frac{1}{\delta}\right)
+$$
 
-For the frequent item \(A\),
+### Query Complexity
 
-\[
-\hat f(A)=\min(8,10,9)=8.
-\]
+A query examines one counter from each row:
 
-For the rare item \(G\),
+$$
+T_{\mathrm{query}}=O(d)
+$$
 
-\[
-\hat f(G)=\min(4,6,4)=4.
-\]
+## 6. Worked Example
 
-The example demonstrates that Count-Min Sketch can estimate frequent items accurately while rare items may experience substantial overestimation.
+Consider the following stream of 20 arrivals:
 
-## 5. How the Stream Affects the Sketch
+```text
+A, B, A, C, A, B, A, D, A, C,
+E, A, B, A, F, D, B, C, A, G
+```
 
-The project investigates several important factors:
+The actual frequencies are:
 
-- **Stream length:** The additive error guarantee depends on the total number of arrivals \(N\).
-- **Near-unique streams:** When most items occur only once, collision errors can dominate their true frequencies.
-- **Number of distinct items:** The number of sketch counters remains fixed for chosen parameters, unlike an exact frequency table.
-- **Order of arrivals:** The final sketch is independent of the order of updates.
-- **Merging:** Sketches with identical dimensions and hash functions can be combined by adding their counters.
-- **Forgetting old data:** Standard Count-Min Sketch does not automatically forget previous observations; sliding windows or periodic resets can be used.
+| Item | True frequency |
+|---|---:|
+| A | 8 |
+| B | 4 |
+| C | 3 |
+| D | 2 |
+| E | 1 |
+| F | 1 |
+| G | 1 |
 
-## 6. Applications
+After processing the stream, suppose the Count-Min Sketch produces the following estimates:
 
-Count-Min Sketch is useful in applications involving large-scale data streams, including:
+| Item | True frequency | Estimated frequency |
+|---|---:|---:|
+| A | 8 | 8 |
+| B | 4 | 4 |
+| C | 3 | 3 |
+| D | 2 | 2 |
+| E | 1 | 1 |
+| F | 1 | 1 |
+| G | 1 | 4 |
 
-- Network traffic analysis
-- Approximate frequency counting
-- Heavy-hitter detection
-- Search query analysis
-- Website traffic monitoring
-- Distributed stream processing
-- Large-scale event monitoring
+The estimate for item G is larger than its actual frequency because of hash collisions.
 
-## 7. Limitations
+This illustrates the central property of Count-Min Sketch: estimates can be higher than actual frequencies, but not lower, under non-negative updates.
 
-Despite its efficiency, Count-Min Sketch has several limitations:
+## 7. Important Properties
 
-- It can overestimate frequencies because of hash collisions.
-- Rare items can have large relative estimation errors.
-- Standard guarantees assume non-negative updates.
-- Adaptive adversaries can exploit known hash functions.
-- Counter overflow can invalidate the guarantees.
-- It does not automatically support forgetting old observations.
+1. **Sublinear memory:** The structure stores a compact counter array rather than an exact frequency table.
+2. **Fast updates:** Every incoming element updates exactly one counter per row.
+3. **Fast queries:** Frequency estimation requires examining one counter per row.
+4. **One-sided error:** With non-negative updates, the estimated frequency is never below the true frequency.
+5. **Probabilistic accuracy:** The width and depth control the additive error and failure probability.
 
-For streams involving negative updates, alternative structures such as Count Sketch may be more appropriate.
+## 8. Applications
 
-## 8. Project Takeaways
+Count-Min Sketch is useful in:
 
-This project demonstrates the connection between probabilistic analysis, hashing, and efficient data structures.
+- Network traffic monitoring.
+- Identifying frequently accessed web pages.
+- Search-query frequency estimation.
+- Database query optimization.
+- Heavy-hitter detection.
+- Large-scale transaction analysis.
+- Real-time data-stream processing.
 
-The central trade-off is:
+## 9. Limitations
 
-**Less memory in exchange for controlled approximation.**
+- Hash collisions can cause overestimation.
+- It does not directly provide exact frequencies.
+- Standard Count-Min Sketch is designed for non-negative updates.
+- Recovering all distinct elements is not its primary purpose.
+- Accuracy depends on the selected width, depth, and hash functions.
 
-By using multiple independent hash functions and taking the minimum counter value, Count-Min Sketch provides a mathematically controlled frequency estimate while avoiding the storage requirements of exact frequency counting.
+## 10. Conclusion
 
----
+Count-Min Sketch provides an efficient approach to approximate frequency estimation in large data streams. By combining multiple hash functions with a compact counter matrix, it achieves low memory usage and fast updates and queries.
+
+Its mathematical error guarantee makes it particularly useful when exact frequency storage is impractical.
 
 ## References
 
-1. T. Roughgarden and G. Valiant, *Approximate Heavy Hitters and the Count-Min Sketch*, Stanford University, CS168, 2015.
-2. A. Moitra, *Problem Set 2*, MIT 6.854J/18.415J Advanced Algorithms, 2016.
-3. B. Sigurleifsson, A. Anbarasu and K. Kangur, *An Overview of Count-Min Sketch and its Applications*, EasyChair Preprint No. 879, 2019.
-4. N. Limaye, *Lecture 7: Count-Min and Count Sketches*, IIT Bombay, CS602, 2014.
-5. Rice University, *COMP 480/580 Scribe Notes 11*, Fall 2024.
+1. Graham Cormode and S. Muthukrishnan, *An Improved Data Stream Summary: The Count-Min Sketch and its Applications*.
+2. Count-Min Sketch research literature and course materials used for this project.
 
 ---
 
-**Academic Project | Probability 2 | Indian Statistical Institute**
+**Note:** The mathematical guarantees above concern a fixed queried item under the standard assumptions of non-negative updates and suitable independent hash functions.
